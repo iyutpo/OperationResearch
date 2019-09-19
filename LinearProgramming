@@ -1,0 +1,53 @@
+
+Reddy Mikks 公司：
+Reddy Mikks 公司使用M1 和 M2 两种原料生产内、外墙涂材料：
+---------------------------------------------------------------
+                    |  每吨产品使用原料的吨数     
+                      ---------------------    日最大可用量（吨）
+                    |  外墙涂料    | 内墙涂料
+---------------------------------------------------------------
+原料 M1             |      6       |    4    |         24      
+---------------------------------------------------------------
+原料 M2             |      1       |    2    |          6
+---------------------------------------------------------------
+每吨利润（千美元）   |      5       |    4    | 
+---------------------------------------------------------------
+
+根据上面的表格，我们可以写出 Objective Function:
+max( 5 * x + 4 * y )
+subject to:
+  6 * x + 4 * y <= 24 
+  1 * x + 2 * y <= 6
+  x >= 0 and y >= 0
+  
+我们很容易通过 画图的方法 发现 最大利润就位于 6 * x + 4 * y = 24 和 1 * x + 2 * y = 6 这两条直线的交点处（这不是一个整数规划）
+并能计算出 当  x = 3, y = 1.5 时，能够取到最大利润：21
+
+相关Python代码实现：
+from pulp import *          # 导入名为 PuLP 的包
+
+prob = LpProblem("Profit", LpMaximize)
+
+x = LpVariable("external", 0, None)
+y = LpVariable("internal", 0, None)
+
+prob += 5 * x + 4 * y, "Health; to be maximized"
+prob += 6 * x + 4 * y <= 24, "constraint1"
+prob += x + 2 * y <= 6, "constraint2"
+
+prob.writeLP('solution.lp')
+
+prob.solve()
+
+print("Status: ", LpStatus[prob.status])
+for v in prob.variables():
+    print(v.name, "=", v.varValue)
+
+print("Maximum Profit = ", value(prob.objective))
+
+
+输出结果：
+Status:  Optimal
+external = 3.0
+internal = 1.5
+Maximum Profit =  21.0
