@@ -21,4 +21,189 @@ subject to:
 这是一个 Canonical Form的约束条件， basic variable为 x1, x2
 basic solution： x1 = 2; x2 = 6; x3 = x4 = 0;  z = -30
 
+我们可以写出，对于 线性规划问题的 伪代码：
+for LP in (I):
+  if cj >= 0:       (j = m+1, ..., n)
+    then the minimum value of z is -z0,
+    and is attained at the basic solution
+    (b1, b2, ..., bm, 0, ..., 0)
+  Stop the algorithm if all cj >= 0
+  
+  if at least one of the ci is negative:  (e.g. ck < 0)
+    xk 应作为一个 basic variable
+    then we should determine which one of (x1, ..., xm) to replace?
+      in (I) set, xj = 0, for m + 1 <= j <= n, but not j = k
+    
+  x1 + a_(1k) * xk = b1               x1 = b1 - a_(1k) >= 0
+  x2 + a_(2k) * xk = b2               .
+  .                                   .                             --->    m个 constraints
+  .                         --->      .
+  .                                   .
+  xm + a_(mk) * xk = bm               xm = bm - a_(mk) * xk >= 0
+
+然后就会有三种情况，对于 a_(ik)：
+  当 a_(ik) < 0，   xi = bi - a_(ik) * xk >= 0   --->  xk >= bi / a_(ik)
+              这种情况意味着， xk 可以任意大，此时， z -> -∞
+  当 a_(ik) = 0,    xi = bi >= 0,  与 a_(ik) < 0 的情况一样
+如果所有的 a_(ik) <= 0， 则 z -> -∞
+
+Theorem U (Unbounded minimum)
+For LP in (I), if there's an index k, m + 1 <= k <= n
+such that ck < 0, and a_(ik) <= 0 for all i = 1, ...,n.
+then we can conclude that the objective function is unbounded below.
+STOP the algorithm.
+
+第三种情况是： at least one of xk > 0:
+对于下面的问题：
+minimize z:
+subject to:
+  x1                + a_(1,m+1) * x_(m+1) + ... + a_(1n) * xn = b1
+      x2            + a_(2,m+1) * x_(m+1) + ... + a_(2n) * xn = b2
+          ...
+                xm  + a_(m,m+1) * x_(m+1) + ... + a_(mn) * xn = b2
+                      c_(m+1) * x_(m+1) + ... + cn * xn = z0 + z
+Theorem(O), if cj >= 0, j = m + 1,..., n, then z_miin = -z0
+attained at (b1, ..., bm, 0, ...,0)
+Theorem(U), if there is  ck < 0 and a_(ik) <= 0 for all i.   --> z_min -> ∞
+
+第三种情况：there is k, ck < 0 and a_(ik) > 0
+for some i,
+  ith equation:   xi + a_(ik) * xk = bi
+  xi = bi - a_(ik) * xk >= 0      --> xk <= bi / a_(ik)   (real constraint)
+suggestion: compute ratio (s) = bi / a_(ik), where a_(ik) > 0
+find the smallest, say bs / a_(sk) = min { bi / a_(ik), a_(ik) > 0 }
+replace xs by xk as basic variable
+basic variables { xi } i = 1, ..., m; xk (k > m)
+
+For this basic solution, we have z = -z0 + ck * xk = -z0 + ck * bs / a_(sk)
+因为 ck < 0, bs >= 0, a_(sk) > 0  -->  ck * bs / a_(sk) <= 0
+
+Theorem(M): In LP (I), assume ck < 0 and at least one a_(ik) > 0, (i = 1, ...,m). Suppose:
+  bs / a_(sk) = min { bi / a_(ik), 1 <= i <= m, a_(ik) > 0}
+Then replace sx by sk as basic variable.
+Pivoting will lead to canonical form.
+At basic solution, we have z = -z0 + ck * bs / a_(sk)
+
+If bs > 0:  z decreases strictly.
+If bs = 0:  z remains the same (unchange) (degenerate)
+For now, assume (I) is non-degenerate,
+i.e., bi > 0，然后我们有两种情况，一种是 最小值有边界， 另一种是 最小值无边界
+(i)  The min is nubounded below
+(ii) The min is bounded
+For (i), we should use Theorem(U)  --> STOP
+For (ii), we use Theorem(M), we iterate many times.
+
+如果我们遇到了 degenerate 问题：
+从 Theorem(M)中发现， z 是随着迭代步数严格下降的 （strictly decrease），从而我们每次迭代都会得到新的 basic solution
+那么 basic solution的个数 就 <= 可供选择的 basic variable 的个数 = n! / [m! (n-m)!]
+---> This is the Proof of convergence of Simplex, for non-degenerate LP.
+
+If LP is degenerate, z remains unchanged after a step --> cycling can happen
+
+
+====================================================================================================
+The big summary:  Starting for canonical form (I)
+1. If all cj >= 0: --> z_min = -zo, then STOP algorithm
+2. If there's ck < 0, and a_(ik) <= 0, then we use Theorem(U) --->  z_min -> -∞, and STOP algorithm
+3. Otherwise: Pivot by using Theorem(M)
+  (a) pivot the column with the "most negative" cj term. Say column k.
+  (b) To find the row of pivot, if min is attained at multiple index, we choose the smallest index. (You can also choose the other indices)
+  repeat from 1.
+
+Example:
+minimize z
+subject to:
+  x1              + 2 * x4 - x5 = 10              (1)
+      x2          + x4 - 5 * x5 = 20              (2)
+          x3      + 6 * x4 - 12 * x5 = 18         (3)
+                  -2 * x4 + 3 * x5 = 60 + z       (4)
+compute ratios: 10/2 = 5,   18/6 = 3     --> pivot x4 in (3)
+  x1              -1/3 * x3 + 3 * x5 = 10            (1')
+      x2          + 1/6 * x3 - 7 * x5 = 23           (2')
+          x3      + 1/6 * x3 + x4 - 2 * x5 = 3       (3')
+                  1/3 * x3 - x5 = 66 + z             (4')   <--- 因为 x5 的系数为负数，所以我们还没有达到最优解
+所以我们要 对 x5 进行 pivot，得到：
+  1/3 * x1          - 1/9 * x3        +x5 = 4/3           (1'')
+  7/3 * x1 + x2 - 11/18 * x3              = 97/3          (2'')
+  2/3 * x1      - 1/18 * x3   +   x4      = 17/3          (3'')
+  1/3 * x1       + 2/9 * x3               = 202/3 + z     (4'')   <----- objective function 中，没有负数系数，所以我们达到了最小值，从而有：
+z_min = -202/3，此时， x2 = 97/3; x4 = 17/3; x5 = 4/3; x1 = x3 = 0。
+
+
+对于这一部分的例题，我们发现，逐步写出各个式子非常麻烦，所以就有了 单纯形表 (Simplex Tablaeu):
+       | x1      x2      x3      x4      x5   |
+----------------------------------------------+------
+   x1  | 1       0       0       2       -1   |  10
+----------------------------------------------+------
+   x2  | 0       1       0       -1       5   |  20
+----------------------------------------------+------
+   x3  | 0       0       1       6       -12  |  18
+----------------------------------------------+------
+   z   | 0       0       0       -2       3   |  60     
+-----------------------------------------------------
+   x1  | 1       0      -1/3     0        3   |   4       <--- 这里进行第一次 pivot，将 x3 用 x4 替换
+----------------------------------------------+------
+   x2  | 0       1       1/6     0        -7  |  23
+----------------------------------------------+------
+   x4  | 0       0       1/6     1        -2  |  3
+----------------------------------------------+------
+       | 0       0       1/3     0        -1  |   66
+-----------------------------------------------------
+   x5  | 1/3     0      -1/9     0        1   |  4/3      <--- 这里进行第二次 pivot，将 x1 用 x5 替换
+----------------------------------------------+------
+   x2  | 7/3     1      -11/18   0        0   |  97/3
+----------------------------------------------+------
+   x4  | 2/3     0      -1/18    1        0   |  17/3
+----------------------------------------------+------
+       | 1/3     0       1/9     0        0   | 202/3     <--- 因为objective function 所有 x 的系数都非负，所以得到 -202/3 为最终解
+
+Simplex Tableau的结论： z_min = -202/3; 此时 x2 = 97/3; x4 = 17/3; x5 = 4/3; x1 = x3 = 0 (non-basic variable)
+
+
+===========================================================================================================
+最重要的例子！！：
+想要 maximize z = 2 * x1 + 3 * x2 + 3 * x3
+     subject to:
+      3 * x1 + 2 * x2         <= 60
+      -x1 +       x2 + 4 * x3 <= 10
+      2 * x1 + -2 * x2 + 5 * x3 <= 50
+      x1, ..., x3 >= 0
+Answer:
+首先要将最大化问题变为最小化问题，然后通过添加 松弛变量 (slack variable) 的方法，将不等号 消去，从而有：
+
+minimize z = -2 * x1 - 3 * x2 - 3 * x3
+subject to:
+  3 * x1 + 2 * x2           + x4            = 60
+  -x1 +       x2 + 4 * x3         + x5      = 10
+  2 * x1 + -2 * x2 + 5 * x3           + x6  = 50
+
+然后列表 (Simplex Tableau):
+
+       | x1      x2      x3      x4      x5     x6  |  b       ratio ( b / xi), xi 是objective function中系数最小，且下标最小的列（如2，3列中，我们选 2 列）
+----------------------------------------------------+---------------------------
+   x4  | 3       2       0       1        0     0   |  60         60/2 = 30
+----------------------------------------------------+---------------------------
+   x5  | -1      1       0       0        1     0   |  10         10/1 = 10   <-- ratio 最小，所以我们要 用 x2 替换掉 x5
+----------------------------------------------------+---------------------------
+   x6  | 2       -2      5       0        0     1   |  50       （不计算这一行的ratio，因为x2的系数为负）
+----------------------------------------------------+---------------------------
+   z   | -2      -3      -3      0        0     0   |  60     
+--------------------------------------------------------------------------------
+   x4  | 5       0       0       1        -2    0   |  40         <-- 将这一行的 x2 的系数变为 0
+----------------------------------------------------+---------------------------
+   x2  | -1      1       0       0        1     0   |  10         <-- 由于这一行 x2 的系数已经为 1，因此不需要变化。
+----------------------------------------------------+---------------------------
+   x6  | 0       0       5       0        2     1   |  70         <-- 将这一行的 x2 的系数变为 0
+----------------------------------------------------+---------------------------
+   z   | -2      -3      -3      0        0     0   |  60     
+
+
+
+
+
+
+
+
+
+
 
