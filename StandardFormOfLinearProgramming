@@ -1,0 +1,177 @@
+
+线性规划问题的 standard form:
+
+Objective function:  minimize,  z = c1 * x1 + c2 * x2 + ... + cn * xn - z0  
+Subject to:
+  a11 * x1 + ... + a1n * x1 = b1
+  .
+  .
+  .
+  am1 * x1 + ... + amn * xn = bm
+  x1,..., xn >= 0
+上式中， z0, aij, cj, bi (i = 1,..., m;  j = 1, ..., n) 都是已知常量。
+且一般来说， n > m
+
+
+为了将一些问题转化为 standard form，我们通常会用到下面几个 Trick：
+Trick 1： （当我们要解决 maximization 问题时，可以添加负号，将问题转换为 minization问题）
+  e.g.:  If we want to maximize z = f(x1,...,xn), then this problem is equivalent to: minimize z = -f(x1,...,xn)
+  
+Trick 2： （我们通常会在限制条件中遇到 “不等号”， 我们可以通过使用添加 一个 松弛变量 (Slack variable) 的方法，将不等号变为 等号）
+  e.g.:  If we have a constraint:  x <= b, then this is equivalent to:  x + x_tail = b,  x_tail >= 0
+  e.g.:  If we have a constraint:  x >= b, then this is equivalent to:  x - x_bar = b,  x_bar >= 0
+注意第二个例子，虽然也可以令 x_bar <= 0，但是我们通常不这么做。原因是，在现实生活中，绝大多数问题都是在 第一象限中求解的（即 不存在负数解），所以我们会让所有 x 变量都为正。
+
+
+虽然实际生活中，许多 变量 x 都是严格非负的，但是如何处理一些 可正可负的 变量？
+Question: What if one variable is unrestricted? Say xi.
+Answer： We can add two new variables, xi' and xi''  (xi' >= 0 and xi'' >= 0), which satisfy  xi = xi' - xi''
+我们可以引入两个正的 变量 xi', xi'' 且有 xi = xi' - xi''
+这两个变量 xi', xi'' 叫做 人工变量 (Artificial Variable)
+
+e.g:
+maximize     3 * x1 - 2 * x2 - x3 + x4 - 87
+subject to:
+  4 * x1 - x2 + x4 <= 6
+  -7 * x1 + 8 * x2 + x3 >= 7
+  x1 + x2 + 4 * x4 = 12
+  x1, x2, x3 >= 0
+  x4: unrestricted
+  
+Can be converted to Standard form:
+minimize     - (3 * x1 - 2 * x2 - x3 - x4' + x4'' - 87)    <-- 一定要把 Objective function 中的变量也替换掉！！
+subject to:
+  4 * x1 - x2 + (x4' - x4'') + x5 = 6
+  -7 * x1 + 8 * x2 + x3 - x6 = 7
+  x1 + x2 + x4 * (x4' - x4'') = 12
+  x1, x2, x3, x4', x4'', x5, x6 >= 0
+
+
+Pivoting：
+E.g.: 我们想用Pivot Process解：
+  x1 + 2 * x2 + x3 = 4              ①
+  2 * x1 + 2 * x2 + 3 * x3 = 7      ②
+  x1 + x2 + 4 * x3 = 6              ③
+
+Step 1: 我们用 第一个式子中的 x1 进行 pivot，从而 第二、三式中的 x1 就会被消掉
+从而通过
+①' = ①
+②' = ① * (-2) + ②
+③' = ① * (-1) + ③
+得到：
+  x1 + 2 * x2 + x3 = 4            ①'
+  -2 * x2 + x3 = -1               ②'
+  -x2 + 3 * x3 = 2                ③'
+
+Step 2: 再用 x2 作为 pivot 变量：
+①'' = ②' + ①'
+②'' = ②' * (-0.5)
+③'' = ②' * (-0.5) + ③'
+得到：
+  x1 + 2 * x3 = 3               ①''
+  x2 - 0.5 * x3 = 0.5           ②''
+  2.5 * x3 = 2.5                ③''
+  
+Step 3: 同理，再用 x3 作为pivot 变量， 就能得到 x1, x2, x3 各自的解了
+
+
+====================================================================================================
+Canonical Form：
+在最初，我们通常会假设 n > m， 也就是已知条件的数量 会 大于 变量的个数 
+但是如果 不能保证 n > m，怎么办？
+先看个例子：
+（我们先忽略这个例子的 Objective function）
+Subject to:
+  x1 + x2 + 2 * x3 + x4 = 6                ①
+  3 * x2 + x3 + 8 * x4 = 3                 ②
+我们发现我们只有两个 约束条件（constraint），但有 4 个未知量
+通过使用上面讲到过的 pivot 的方法，将 这两个约束条件 ① ② 变为：
+  x1 +       5/3 * x3 - 5/3 * x4 = 5             ①'
+        x2 + 1/3 * x3 + 8/3 * x4 = 1             ②'
+这个形式叫做 Canonical Form
+我们能看出来，被 pivot 的两个变量是 x1 和 x2 (也叫 basic variable)， 没被 pivot 的变量是 x3 和 x4 (也叫 non-basic variable)
+我们将上面 ①'和 ②' 中的 x1， x2 写为：
+  x1 = 5 - (5/3 * x3 - 5/3 * x4)
+  x2 = 1 - (1/3 * x3 + 8/3 * x4)
+其中 x3, x4 是随机的
+不难发现，一个可行的解为：  x3 = x4 = 0
+从而我们能得到  x1 = 5,  x2 = 1
+
+对于所有的 Canonical Form， 其中一个解就是：
+  所有的   non-basic variable = 0
+  所有的   basic variable = 等式右边
+对于这个解，我们称为  “基本解” （Basic Solution）
+如果这个解是 非负的， 我们也叫它： "Basic feasible solution" （基本可行解）
+
+注意： 
+  1. 对于 Canonical Form，会有多个 basic solution
+  2. 并不是所有的 basic solution 都是 可行的 (feasible)
+
+Eg 1.: If we choose x1 to pivot in ①, choose x4 to pivot in ②：
+We get:
+  x1 + 5/8 * x2 + 15/8 * x3     = 45/8
+       3/8 * x2 + 1/8 * x3 + x4 = 3/8
+Basic solution: x2 = 0, x3 = 0, x1 = 45/8, x4 = 3/8
+这个 basic solution， 因为所有解都 >= 0，所以是 basic feasible solution
+
+Eg 2.: If we choose x4 in ②, choose x2 in ①：
+We get:
+  8/5 * x1 + x2 + 3 * x3 = 9
+  -3/5 * x1 - x3 + x4 = -3
+Basic solution: x1 = 0, x2 = 9, x3 = 0, x4 = -3， 因为该basic solution中有一个变量 x4 小于 0，所以不是 basic feasible solution.
+
+我们发现， pivot 变量的选择，会影响到我们最后 所得到的 basic solution，进而影响到 该solution 是否 feasible。
+为了研究这一问题，我们还回到最初的 两个约束条件：
+  x1 + x2 + 2 * x3 + x4 = 6                ①
+  3 * x2 + x3 + 8 * x4 = 3                 ②
+我们将这两个给约束条件写成向量的形式：
+x1 * [1, 0]T + x2 * [1, 3]T + x3 * [2, 1]T + x4 * [1, 8]T = [6, 3]T
+(上面的 T 表示转置）, 我们将 x1 后边的 列向量 [1,0]T 写为 v1; x2 后边的 列向量 [1,3]T 写为 v2...; 等式右边的列向量[6,3]T 写为 b。
+
+从而我们有新的问题：“我们能否找到一个 非负 的 v1, v2 的线性组合，来表示 b？”
+我们将 b 写成 v1 和 v2 表示的形式：  
+  b = x1 * v1 + x2 * v2
+  
+                  ^  y2
+                  |
+                  |     v2
+                  |    ↗
+                  |   /
+                  |  /
+                  | /
+                  |/
+------------------+------------------->  y1
+                0 |\
+                  | \
+                  |  \
+                  |   \
+                  |    ↘
+                  |     v1
+                  |
+如果 向量 b 能够 落在 v1 与 v2 所形成的 右侧 区域内，那么， b 的解 就是 非负 的。否则， b 就会有 负数 解。
+y1, y2 分别是： x变量后边的 列向量 [y1, y2]T
+
+====================================================================================================
+几何方法求解：
+(Geometric method):
+x1 * [1, 0]T + x2 * [1, 3]T + x3 * [2, 1]T + x4 * [1, 8]T = [6, 3]T
+
+还是这个问题，如果我们 挑选了 x3 进行 pivot，那么也就意味着， x3 一定是 basic solution 中的一个变量。
+我们发现 x3 后边的列向量 v3 与 b [6,3]T 其实是 同向的。
+这意味着，挑选 x3 后， 另一个 x (无论是 x1, x2, 或 x4) 一定为 0。
+例如： Basic solution:  
+      basic variable: x1 = 0, x3 = 3;  
+      non-basic variable: x2 = x4 = 0
+我们发现，basic variable 中的 x1 也变成了 0。 对于basic variable中 为 0 的变量，我们称它们为 Degenerate 
+
+
+
+
+
+
+
+
+
+
+
+
