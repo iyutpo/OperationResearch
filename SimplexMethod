@@ -1,0 +1,24 @@
+
+我们假设现在有一个 Canonical Form 的线性规划问题
+m ：约束条件个数；  n：变量个数；     n > m
+minimize z:
+subject to:
+  x1                + a_(1,m+1) * x_(m+1) + ... + a_(1n) * xn = b1
+      x2            + a_(2,m+1) * x_(m+1) + ... + a_(2n) * xn = b2
+          ...
+                xm  + a_(m,m+1) * x_(m+1) + ... + a_(mn) * xn = b2
+                      c_(m+1) * x_(m+1) + ... + cn * xn = z0 + z
+aij, bi, cj, z0 都是常量
+bi (i = 1,...n) >= 0  --> feasible basic solution
+
+e.g.:
+minimize z:
+subject to:
+  x1 + x3 - 5 * x4 = 2
+  x2 - x3 - 6 * x4 = 6
+  2 * x3 + 5 * x4 = 30 + z
+  x1, x2, x3, x4 >= 0
+这是一个 Canonical Form的约束条件， basic variable为 x1, x2
+basic solution： x1 = 2; x2 = 6; x3 = x4 = 0;  z = -30
+
+
