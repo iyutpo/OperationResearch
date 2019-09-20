@@ -199,8 +199,22 @@ Step 4: Repeat step 3 as "needed".
 此时，我们是否应该继续 对 basic variable 进行替换？
 answer：不用了， 因为 在 objective function中， 所有变量的系数都大于零，我们只能通过将所有 系数为正的变量 赋值为 0，才能让 z 最小。
 
-  
-  
+
+====================================================================================================
+总结：
+单纯形法 开始于 Canonical Form  with feasible basic solution
+然后， 从一个 feasible basic solution 移动到另一个 feasible basic solution 来降低 z 的值，直到达到 z 的最小值。
+下面的多边形假设就是 feasible region，我们从 starting point 开始沿着边寻找最小值点，直到找到为止。
+
+                  /\
+                 /  \
+                /    \    <--  start at this point
+               /      |
+               \      |
+                \    /
+                 \  /              ^    move this line up (Objective function)
+                  v                |
+  -------------------------------- |
 
 
 
